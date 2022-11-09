@@ -17,8 +17,6 @@
 /* eslint-disable no-unused-vars */
 
 const $playAgain = document.querySelector('#play-again-button');
-const $player1Container = document.querySelector('#player1-container');
-const $player2Container = document.querySelector('#player2-container');
 
 document.addEventListener('DOMContentLoaded', event => playGame());
 
@@ -30,17 +28,23 @@ const playGame = function () {
   const deck = generateDeck();
   const handPlayer1 = [];
   const handPlayer2 = [];
+  const cardNum = 10;
+  const $player1Container = document.querySelector('#player1-container');
+  const $player2Container = document.querySelector('#player2-container');
 
-  generateHands(deck, handPlayer1, handPlayer2, 10);
-  console.log(handPlayer1, handPlayer2);
-  // Determine Winners
+  initializeHandDOM($player1Container, $player2Container);
+
+  generateHands(deck, handPlayer1, handPlayer2, cardNum);
+  console.log('Player 1\'s Hand: ', handPlayer1);
+  console.log('Player 2\'s Hand: ', handPlayer2);
 
   const player1Pairs = determineWinningPairs(handPlayer1);
   const player2Pairs = determineWinningPairs(handPlayer2);
 
-  console.log(player1Pairs);
-  console.log(player2Pairs);
+  console.log('Player 1\'s Pairs: ', player1Pairs);
+  console.log('Player 2\'s Pairs: ', player2Pairs);
 
+  determineWinner(player1Pairs, player2Pairs, $player1Container, $player2Container);
   renderCards(handPlayer1, handPlayer2, $player1Container, $player2Container);
 
 };
@@ -56,7 +60,7 @@ const generateDeck = function () {
       const newCard = {};
       newCard.rank = cards[i];
       newCard.suits = suits[j];
-      newCard.cardURL = 'undefined';
+      newCard.cardURL = 'placeholder for now';
       newCard.pairStatus = '';
       deck.push(newCard);
     }
@@ -66,7 +70,6 @@ const generateDeck = function () {
 };
 
 const shuffleDeck = function (deck) {
-  // Fisher-Yates Algorithm
   let i = deck.length;
   while (--i > 0) {
     const randomIndex = Math.floor(Math.random() * (i + 1));
@@ -85,22 +88,16 @@ const determineWinningPairs = function (hand) {
   const winningPairs = [];
 
   for (let i = 0; i < hand.length - 1; i++) {
-
     const subArr = [];
-
     for (let j = i + 1; j < hand.length; j++) {
-
       if (hand[i].rank === hand[j].rank) {
-
         if (winningPairs.length === 0) {
           if (subArr.length === 0) {
             subArr.push(hand[i].rank);
             subArr.push(hand[j].rank);
           } else {
             subArr.push(hand[j].rank);
-
           }
-
           hand[i].pairStatus = 'pair0';
           hand[j].pairStatus = 'pair0';
         } else if (!winningPairs[0].includes(hand[i].rank)) {
@@ -110,7 +107,6 @@ const determineWinningPairs = function (hand) {
           } else {
             subArr.push(hand[j].rank);
           }
-
           hand[i].pairStatus = 'pair1';
           hand[j].pairStatus = 'pair1';
         }
@@ -123,18 +119,97 @@ const determineWinningPairs = function (hand) {
   return winningPairs;
 };
 
+const determineWinner = function (player1Pairs, player2Pairs, $player1Container, $player2Container) {
+  if (player1Pairs.length > player2Pairs.length) {
+    console.log('Player 1 has more pairs. Player 1 has won!');
+    return renderWinner($player1Container);
+  } else if (player2Pairs.length > player1Pairs.length) {
+    console.log('Player 2 has more pairs. Player 2 has won!');
+    return renderWinner($player2Container);
+  } else {
+    if (player1Pairs.length !== 0 && player2Pairs.length !== 0) {
+      return tieBreaker(player1Pairs, player2Pairs, $player1Container, $player2Container);
+    }
+  }
+  console.log('Neither player has any pairs. There is no winner.');
+};
+
+const tieBreaker = function (player1Pairs, player2Pairs, $player1Container, $player2Container) {
+  const player1PairCardCount = calculatePairCardCount(player1Pairs);
+  const player2PairCardCount = calculatePairCardCount(player2Pairs);
+
+  if (player1PairCardCount > player2PairCardCount) {
+    console.log('Player 1 has more paired cards and has won!');
+    return renderWinner($player1Container);
+  } else if (player2PairCardCount > player1PairCardCount) {
+    console.log('Player 2 has more paired cards and has won!');
+    return renderWinner($player2Container);
+  }
+
+  // Final Tie Breaker. Calculate the total number if pairs are the same and number of cards are the same
+
+  const player1Total = calculateTotal(player1Pairs);
+  const player2Total = calculateTotal(player2Pairs);
+
+  if (player1Total > player2Total) {
+    console.log(`Player 1 has won with a total of ${player1Total}!`);
+    renderWinner($player1Container);
+  } else if (player2Total > player1Total) {
+    console.log(`Player 2 has won with a total of ${player2Total}!`);
+    renderWinner($player2Container);
+  } else {
+    console.log('Both Players have equal total ranks. Draw!');
+  }
+};
+
+const calculatePairCardCount = function (pairs) {
+  let pairCount = 0;
+
+  if (pairs.length > 1) {
+    pairCount += pairs[0].length + pairs[1].length;
+  } else {
+    pairCount = pairs[0].length;
+  }
+  return pairCount;
+};
+
+const calculateTotal = function (pairs) {
+  let total = 0;
+
+  for (let i = 0; i < pairs.length; i++) {
+    for (let j = 0; j < pairs[i].length; j++) {
+      total += convertRank(pairs[i][j]);
+    }
+  }
+  return total;
+};
+
+const convertRank = function (rank) {
+  if (rank === 'A') {
+    return 11;
+  } else if (rank === 'K' || rank === 'Q' || rank === 'J') {
+    return 10;
+  } else {
+    return parseInt(rank);
+  }
+};
+
 // DOM Functionality
 
-function renderCards(hand1, hand2, $player1Container, $player2Container) {
+const renderCards = function (hand1, hand2, $player1Container, $player2Container) {
 
   for (let i = 0; i < hand1.length; i++) {
     $player1Container.appendChild(createElement('img', { src: hand1[i].imgURL, class: `card ${hand1[i].pairStatus}` }, []));
     $player2Container.appendChild(createElement('img', { src: hand2[i].imgURL, class: `card ${hand2[i].pairStatus}` }, []));
 
   }
-}
+};
 
-function createElement(tagName, attributes, children) {
+const renderWinner = function (playerContainer) {
+  playerContainer.parentElement.classList.add('winning');
+};
+
+const createElement = function (tagName, attributes, children) {
   const $element = document.createElement(tagName);
   for (const name in attributes) {
     $element.setAttribute(name, attributes[name]);
@@ -147,7 +222,23 @@ function createElement(tagName, attributes, children) {
     }
   }
   return $element;
-}
+};
+
+const initializeHandDOM = function ($player1Container, $player2Container) {
+  if ($player1Container.hasChildNodes || $player2Container.hasChildNodes) {
+    removeAllChildren($player1Container);
+    removeAllChildren($player2Container);
+    $player1Container.parentElement.className = 'hand';
+    $player2Container.parentElement.className = 'hand';
+  }
+
+};
+
+const removeAllChildren = function (parent) {
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
+};
 
 /*
 
