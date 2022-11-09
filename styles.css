@@ -40,6 +40,10 @@ h1 {
   content: " Wins!";
 }
 
+.player-container {
+  text-align: center;
+}
+
 /* Button */
 .buttons {
   text-align: center;

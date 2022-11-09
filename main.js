@@ -13,8 +13,16 @@
 
 */
 
-const playAgain = document.querySelector('#play-again-button');
-playAgain.addEventListener('click', () => {
+/* eslint-disable no-debugger, no-console */
+/* eslint-disable no-unused-vars */
+
+const $playAgain = document.querySelector('#play-again-button');
+const $player1Container = document.querySelector('#player1-container');
+const $player2Container = document.querySelector('#player2-container');
+
+document.addEventListener('DOMContentLoaded', event => playGame());
+
+$playAgain.addEventListener('click', () => {
   return playGame();
 });
 
@@ -23,8 +31,18 @@ const playGame = function () {
   const handPlayer1 = [];
   const handPlayer2 = [];
 
-  generateHands(deck, handPlayer1, handPlayer2);
-  // console.log(handPlayer1, handPlayer2);
+  generateHands(deck, handPlayer1, handPlayer2, 10);
+  console.log(handPlayer1, handPlayer2);
+  // Determine Winners
+
+  const player1Pairs = determineWinningPairs(handPlayer1);
+  const player2Pairs = determineWinningPairs(handPlayer2);
+
+  console.log(player1Pairs);
+  console.log(player2Pairs);
+
+  renderCards(handPlayer1, handPlayer2, $player1Container, $player2Container);
+
 };
 
 const generateDeck = function () {
@@ -38,7 +56,8 @@ const generateDeck = function () {
       const newCard = {};
       newCard.rank = cards[i];
       newCard.suits = suits[j];
-      newCard.cardURL = cardBaseURL;
+      newCard.cardURL = 'undefined';
+      newCard.pairStatus = '';
       deck.push(newCard);
     }
   }
@@ -53,15 +72,82 @@ const shuffleDeck = function (deck) {
     const randomIndex = Math.floor(Math.random() * (i + 1));
     [deck[randomIndex], deck[i]] = [deck[i], deck[randomIndex]];
   }
-  // console.log(deck);
 };
 
-const generateHands = function (deck, handPlayer1, handPlayer2) {
-  for (let i = 0; i < 10; i++) {
+const generateHands = function (deck, handPlayer1, handPlayer2, size) {
+  for (let i = 0; i < size; i++) {
     handPlayer1.push(deck[i++]);
     handPlayer2.push(deck[i]);
   }
 };
+
+const determineWinningPairs = function (hand) {
+  const winningPairs = [];
+
+  for (let i = 0; i < hand.length - 1; i++) {
+
+    const subArr = [];
+
+    for (let j = i + 1; j < hand.length; j++) {
+
+      if (hand[i].rank === hand[j].rank) {
+
+        if (winningPairs.length === 0) {
+          if (subArr.length === 0) {
+            subArr.push(hand[i].rank);
+            subArr.push(hand[j].rank);
+          } else {
+            subArr.push(hand[j].rank);
+
+          }
+
+          hand[i].pairStatus = 'pair0';
+          hand[j].pairStatus = 'pair0';
+        } else if (!winningPairs[0].includes(hand[i].rank)) {
+          if (subArr.length === 0) {
+            subArr.push(hand[i].rank);
+            subArr.push(hand[j].rank);
+          } else {
+            subArr.push(hand[j].rank);
+          }
+
+          hand[i].pairStatus = 'pair1';
+          hand[j].pairStatus = 'pair1';
+        }
+      }
+    }
+    if (subArr.length > 0) {
+      winningPairs.push(subArr);
+    }
+  }
+  return winningPairs;
+};
+
+// DOM Functionality
+
+function renderCards(hand1, hand2, $player1Container, $player2Container) {
+
+  for (let i = 0; i < hand1.length; i++) {
+    $player1Container.appendChild(createElement('img', { src: hand1[i].imgURL, class: `card ${hand1[i].pairStatus}` }, []));
+    $player2Container.appendChild(createElement('img', { src: hand2[i].imgURL, class: `card ${hand2[i].pairStatus}` }, []));
+
+  }
+}
+
+function createElement(tagName, attributes, children) {
+  const $element = document.createElement(tagName);
+  for (const name in attributes) {
+    $element.setAttribute(name, attributes[name]);
+  }
+  for (let i = 0; i < children.length; i++) {
+    if (children[i] instanceof HTMLElement) {
+      $element.appendChild(children[i]);
+    } else {
+      $element.appendChild(document.createTextNode(children[i]));
+    }
+  }
+  return $element;
+}
 
 /*
 
