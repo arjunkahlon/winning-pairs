@@ -17,24 +17,31 @@
 /* eslint-disable no-unused-vars */
 
 const $playAgain = document.querySelector('#play-again-button');
+let deck = [];
 
-document.addEventListener('DOMContentLoaded', event => playGame());
-
-$playAgain.addEventListener('click', () => {
-  return playGame();
+document.addEventListener('DOMContentLoaded', event => {
+  deck = generateDeck();
+  playGame(deck);
 });
 
-const playGame = function () {
-  const deck = generateDeck();
+$playAgain.addEventListener('click', () => {
+  return playGame(deck);
+});
+
+const playGame = function (deck) {
   const handPlayer1 = [];
   const handPlayer2 = [];
-  const cardNum = 10;
+  const handSize = 5;
   const $player1Container = document.querySelector('#player1-container');
   const $player2Container = document.querySelector('#player2-container');
 
   initializeHandDOM($player1Container, $player2Container);
 
-  generateHands(deck, handPlayer1, handPlayer2, cardNum);
+  if (deck.length < (handSize * 2)) {
+    deck = generateDeck();
+  }
+
+  generateHands(deck, handPlayer1, handPlayer2, handSize);
   console.log('Player 1\'s Hand: ', handPlayer1);
   console.log('Player 2\'s Hand: ', handPlayer2);
 
@@ -79,8 +86,8 @@ const shuffleDeck = function (deck) {
 
 const generateHands = function (deck, handPlayer1, handPlayer2, size) {
   for (let i = 0; i < size; i++) {
-    handPlayer1.push(deck[i++]);
-    handPlayer2.push(deck[i]);
+    handPlayer1.push(deck.shift());
+    handPlayer2.push(deck.shift());
   }
 };
 
