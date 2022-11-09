@@ -52,15 +52,15 @@ const playGame = function () {
 const generateDeck = function () {
   const suits = ['spade', 'heart', 'diamond', 'club'];
   const cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  const cardBaseURL = 'http://h3h.net/images/cards/{suit}_{card}.svg';
+  const cardBaseURL = 'https://raw.githubusercontent.com/uzair-ashraf/storage-bucket/master/cards/';
   const deck = [];
 
   for (let i = 0; i < cards.length; i++) {
     for (let j = 0; j < suits.length; j++) {
       const newCard = {};
       newCard.rank = cards[i];
-      newCard.suits = suits[j];
-      newCard.cardURL = 'placeholder for now';
+      newCard.suit = suits[j];
+      newCard.cardURL = `${cardBaseURL}${suits[j]}_${cards[i]}.png`;
       newCard.pairStatus = '';
       deck.push(newCard);
     }
@@ -199,8 +199,24 @@ const convertRank = function (rank) {
 const renderCards = function (hand1, hand2, $player1Container, $player2Container) {
 
   for (let i = 0; i < hand1.length; i++) {
-    $player1Container.appendChild(createElement('img', { src: hand1[i].imgURL, class: `card ${hand1[i].pairStatus}` }, []));
-    $player2Container.appendChild(createElement('img', { src: hand2[i].imgURL, class: `card ${hand2[i].pairStatus}` }, []));
+    $player1Container.appendChild(
+      createElement(
+        'img', {
+          src: hand1[i].cardURL,
+          alt: `Image - Suit: ${hand1[i].suit} Rank: ${hand1[i].rank}`,
+          class: `card ${hand1[i].pairStatus}`
+        }, []
+      )
+    );
+    $player2Container.appendChild(
+      createElement(
+        'img', {
+          src: hand2[i].cardURL,
+          alt: `Image - Suit: ${hand2[i].suit} Rank: ${hand2[i].rank}`,
+          class: `card ${hand2[i].pairStatus}`
+        }, []
+      )
+    );
 
   }
 };
