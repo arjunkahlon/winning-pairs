@@ -16,8 +16,10 @@
 /* eslint-disable no-debugger, no-console */
 /* eslint-disable no-unused-vars */
 
-const $playAgain = document.querySelector('#play-again-button');
 let deck = [];
+const $player1Container = document.querySelector('#player1-container');
+const $player2Container = document.querySelector('#player2-container');
+const $playAgain = document.querySelector('#play-again-button');
 
 document.addEventListener('DOMContentLoaded', event => {
   deck = generateDeck();
@@ -32,10 +34,8 @@ const playGame = function (deck) {
   const handPlayer1 = [];
   const handPlayer2 = [];
   const handSize = 5;
-  const $player1Container = document.querySelector('#player1-container');
-  const $player2Container = document.querySelector('#player2-container');
 
-  initializeHandDOM($player1Container, $player2Container);
+  initializeHandDOM();
 
   if (deck.length < (handSize * 2)) {
     deck = generateDeck();
@@ -45,22 +45,32 @@ const playGame = function (deck) {
   console.log('Player 1\'s Hand: ', handPlayer1);
   console.log('Player 2\'s Hand: ', handPlayer2);
 
-  const player1Pairs = determineWinningPairs(handPlayer1);
-  const player2Pairs = determineWinningPairs(handPlayer2);
+  const player1Pairs = determinePairs(handPlayer1);
+  const player2Pairs = determinePairs(handPlayer2);
 
-  console.log('Player 1\'s Pairs: ', player1Pairs);
-  console.log('Player 2\'s Pairs: ', player2Pairs);
+  // Extra Credit Challenge
+  // ----------------------------------------------------------------------
+  // If either player has no pairs, generate a random number between 1 and
+  //  100. If this number is between 1 and 90 inclusive, recursively call playGame
+  //  function and redraw hands.
 
-  determineWinner(player1Pairs, player2Pairs, $player1Container, $player2Container);
-  renderCards(handPlayer1, handPlayer2, $player1Container, $player2Container);
+  if ((player1Pairs.length === 0 || player2Pairs.length === 0) &&
+    (Math.random() * 100 + 1) <= 90) {
+    return playGame(deck);
+  } else {
+    console.log('Player 1\'s Pairs: ', player1Pairs);
+    console.log('Player 2\'s Pairs: ', player2Pairs);
 
+    determineWinner(player1Pairs, player2Pairs);
+    renderCards(handPlayer1, handPlayer2);
+  }
 };
 
 const generateDeck = function () {
   const suits = ['spade', 'heart', 'diamond', 'club'];
   const cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
   const cardBaseURL = 'https://raw.githubusercontent.com/uzair-ashraf/storage-bucket/master/cards/';
-  const deck = [];
+  const generatedDeck = [];
 
   for (let i = 0; i < cards.length; i++) {
     for (let j = 0; j < suits.length; j++) {
@@ -69,18 +79,18 @@ const generateDeck = function () {
       newCard.suit = suits[j];
       newCard.cardURL = `${cardBaseURL}${suits[j]}_${cards[i]}.png`;
       newCard.pairStatus = '';
-      deck.push(newCard);
+      generatedDeck.push(newCard);
     }
   }
-  shuffleDeck(deck);
-  return deck;
+  shuffleDeck(generatedDeck);
+  return generatedDeck;
 };
 
-const shuffleDeck = function (deck) {
-  let i = deck.length;
+const shuffleDeck = function (generatedDeck) {
+  let i = generatedDeck.length;
   while (--i > 0) {
     const randomIndex = Math.floor(Math.random() * (i + 1));
-    [deck[randomIndex], deck[i]] = [deck[i], deck[randomIndex]];
+    [generatedDeck[randomIndex], generatedDeck[i]] = [generatedDeck[i], generatedDeck[randomIndex]];
   }
 };
 
@@ -91,42 +101,42 @@ const generateHands = function (deck, handPlayer1, handPlayer2, size) {
   }
 };
 
-const determineWinningPairs = function (hand) {
-  const winningPairs = [];
+const determinePairs = function (hand) {
+  const pairs = [];
 
   for (let i = 0; i < hand.length - 1; i++) {
-    const subArr = [];
+    const subPairs = [];
     for (let j = i + 1; j < hand.length; j++) {
       if (hand[i].rank === hand[j].rank) {
-        if (winningPairs.length === 0) {
-          if (subArr.length === 0) {
-            subArr.push(hand[i].rank);
-            subArr.push(hand[j].rank);
+        if (pairs.length === 0) {
+          if (subPairs.length === 0) {
+            subPairs.push(hand[i].rank);
+            subPairs.push(hand[j].rank);
           } else {
-            subArr.push(hand[j].rank);
+            subPairs.push(hand[j].rank);
           }
           hand[i].pairStatus = 'pair0';
           hand[j].pairStatus = 'pair0';
-        } else if (!winningPairs[0].includes(hand[i].rank)) {
-          if (subArr.length === 0) {
-            subArr.push(hand[i].rank);
-            subArr.push(hand[j].rank);
+        } else if (!pairs[0].includes(hand[i].rank)) {
+          if (subPairs.length === 0) {
+            subPairs.push(hand[i].rank);
+            subPairs.push(hand[j].rank);
           } else {
-            subArr.push(hand[j].rank);
+            subPairs.push(hand[j].rank);
           }
           hand[i].pairStatus = 'pair1';
           hand[j].pairStatus = 'pair1';
         }
       }
     }
-    if (subArr.length > 0) {
-      winningPairs.push(subArr);
+    if (subPairs.length > 0) {
+      pairs.push(subPairs);
     }
   }
-  return winningPairs;
+  return pairs;
 };
 
-const determineWinner = function (player1Pairs, player2Pairs, $player1Container, $player2Container) {
+const determineWinner = function (player1Pairs, player2Pairs) {
   if (player1Pairs.length > player2Pairs.length) {
     console.log('Player 1 has more pairs. Player 1 has won!');
     return renderWinner($player1Container);
@@ -135,13 +145,13 @@ const determineWinner = function (player1Pairs, player2Pairs, $player1Container,
     return renderWinner($player2Container);
   } else {
     if (player1Pairs.length !== 0 && player2Pairs.length !== 0) {
-      return tieBreaker(player1Pairs, player2Pairs, $player1Container, $player2Container);
+      return tieBreaker(player1Pairs, player2Pairs);
     }
   }
   console.log('Neither player has any pairs. There is no winner.');
 };
 
-const tieBreaker = function (player1Pairs, player2Pairs, $player1Container, $player2Container) {
+const tieBreaker = function (player1Pairs, player2Pairs) {
   const player1PairCardCount = calculatePairCardCount(player1Pairs);
   const player2PairCardCount = calculatePairCardCount(player2Pairs);
 
@@ -153,16 +163,17 @@ const tieBreaker = function (player1Pairs, player2Pairs, $player1Container, $pla
     return renderWinner($player2Container);
   }
 
-  // Final Tie Breaker. Calculate the total number if pairs are the same and number of cards are the same
+  // Final Tie Breaker. Calculate the total number if pairs are the same and
+  //    number of cards are the same
 
   const player1Total = calculateTotal(player1Pairs);
   const player2Total = calculateTotal(player2Pairs);
 
   if (player1Total > player2Total) {
-    console.log(`Player 1 has won with a total of ${player1Total}!`);
+    console.log('Player 1 has won with a higher total rank!');
     renderWinner($player1Container);
   } else if (player2Total > player1Total) {
-    console.log(`Player 2 has won with a total of ${player2Total}!`);
+    console.log('Player 2 has won with a higher total rank!');
     renderWinner($player2Container);
   } else {
     console.log('Both Players have equal total ranks. Draw!');
@@ -192,18 +203,23 @@ const calculateTotal = function (pairs) {
 };
 
 const convertRank = function (rank) {
-  if (rank === 'A') {
-    return 11;
-  } else if (rank === 'K' || rank === 'Q' || rank === 'J') {
-    return 10;
-  } else {
-    return parseInt(rank);
+  switch (rank) {
+    case 'A':
+      return 14;
+    case 'K':
+      return 13;
+    case 'Q':
+      return 12;
+    case 'J':
+      return 11;
+    default:
+      return parseInt(rank);
   }
 };
 
 // DOM Functionality
 
-const renderCards = function (hand1, hand2, $player1Container, $player2Container) {
+const renderCards = function (hand1, hand2) {
 
   for (let i = 0; i < hand1.length; i++) {
     $player1Container.appendChild(
@@ -247,7 +263,7 @@ const createElement = function (tagName, attributes, children) {
   return $element;
 };
 
-const initializeHandDOM = function ($player1Container, $player2Container) {
+const initializeHandDOM = function () {
   if ($player1Container.hasChildNodes || $player2Container.hasChildNodes) {
     removeAllChildren($player1Container);
     removeAllChildren($player2Container);
