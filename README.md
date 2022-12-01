@@ -6,3 +6,5 @@
 4. Determine the winner. The winner with the most pairs wins the game. If equal pairs, the winner with the highest combined rank wins.
 5. Indicate the winning hand and pairs of cards.
 6. Extra Credit: Implement functionality that will guarantee that at least 90% of hands have pairs.
+
+Challenge provided by WildFire
