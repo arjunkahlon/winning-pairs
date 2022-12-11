@@ -7,4 +7,7 @@
 5. Indicate the winning hand and pairs of cards.
 6. Extra Credit: Implement functionality that will guarantee that at least 90% of hands have pairs.
 
+![gameplay](https://user-images.githubusercontent.com/49361894/206882426-083f4b35-d905-41d2-94f2-e6fc11c0a982.gif)
+
+
 Challenge provided by WildFire
